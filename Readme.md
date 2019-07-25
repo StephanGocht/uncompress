@@ -18,7 +18,7 @@ For example consider the following archive.
 To print the uncompressed content of `largeFile.txt` to std out you
 can run
 
-    uncompress example.tar largeFile.txt.gz
+    unarchive example.tar largeFile.txt.gz
 
 
 Installation
@@ -42,7 +42,7 @@ Help
 
 Run
 
-    uncompress -h
+    unarchive -h
 
 for more help.
 
@@ -52,11 +52,11 @@ Interface
 Here is a minimal working example.
 
 ```python
-    from uncompress import ArchiveOfCompressedFiles
+    from uncompress import Archive
     import io
 
     fileName = input()
-    with ArchiveOfCompressedFiles(fileName) as a:
+    with Archive(fileName) as a:
         firstFile = a.list_files[0]
         print(firstFile)
 

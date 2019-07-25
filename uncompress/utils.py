@@ -68,7 +68,7 @@ class PathType(object):
         return string
 
 def run(archive, file = None, list = "files"):
-    with uncompress.ArchiveOfCompressedFiles(archive) as a:
+    with uncompress.Archive(archive) as a:
         if file is not None:
             f = io.TextIOWrapper(a.read(file))
             for line in f.readlines():

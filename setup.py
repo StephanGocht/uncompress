@@ -11,7 +11,7 @@ setup(
     packages=['uncompress'],
     entry_points={
         'console_scripts': [
-            'uncompress=uncompress:run_cmd_main',
+            'unarchive=uncompress:run_cmd_main',
         ]
     },
 )

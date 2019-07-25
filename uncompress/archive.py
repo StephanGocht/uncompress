@@ -19,17 +19,17 @@ class register_archive:
 
 FileInfo = namedtuple('FileInfo', "name is_file")
 
-class Archive():
+class ArchiveBase():
     registered_archives = list()
 
     @staticmethod
     def register_archive(a):
-        Archive.registered_archives.append(a)
+        ArchiveBase.registered_archives.append(a)
 
     @staticmethod
     def open(archive):
         a = None
-        for archive_cls in Archive.registered_archives:
+        for archive_cls in ArchiveBase.registered_archives:
             try:
                 a = archive_cls(archive)
             except UnsupportedArchive as e:
@@ -73,8 +73,8 @@ class Archive():
 class UnsupportedArchive(TypeError):
     pass
 
-@Archive.register_archive
-class ZipWrapper(Archive):
+@ArchiveBase.register_archive
+class ZipWrapper(ArchiveBase):
     def __init__(self, file):
         try:
             self.zip = zipfile.ZipFile(file)
@@ -91,8 +91,8 @@ class ZipWrapper(Archive):
     def close(self):
         self.zip.close()
 
-@Archive.register_archive
-class TarWrapper(Archive):
+@ArchiveBase.register_archive
+class TarWrapper(ArchiveBase):
     def __init__(self, file):
         try:
             try:
@@ -111,8 +111,8 @@ class TarWrapper(Archive):
     def close(self):
         self.tar.close()
 
-@Archive.register_archive
-class FolderWrapper(Archive):
+@ArchiveBase.register_archive
+class FolderWrapper(ArchiveBase):
     def __init__(self, file):
         self.openFiles = list()
 
@@ -146,7 +146,7 @@ class FolderWrapper(Archive):
 
 
 
-class ArchiveOfCompressedFiles(Archive):
+class ArchiveOfCompressedFiles(ArchiveBase):
     registered_compressions = list()
     registered_endings = set()
 
@@ -189,7 +189,7 @@ class ArchiveOfCompressedFiles(Archive):
         return str(path)
 
     def __init__(self, archive):
-        self.archive = Archive.open(archive)
+        self.archive = ArchiveBase.open(archive)
 
     def infolist(self):
         return self.archive.infolist()
