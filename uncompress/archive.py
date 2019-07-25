@@ -121,7 +121,7 @@ class TarWrapper(ArchiveBase):
             try:
                 self.tar = tarfile.open(fileobj = file)
             except AttributeError as e:
-                self.tar = tarfile.TarFile(file)
+                self.tar = tarfile.open(file)
         except (tarfile.ReadError, IsADirectoryError) as e:
             raise UnsupportedArchive(e)
 
