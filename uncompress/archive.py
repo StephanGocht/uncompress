@@ -8,6 +8,7 @@ import bz2
 
 import io
 from pathlib import Path
+import os
 
 class register_archive:
     def __init__(self, ending):
@@ -60,6 +61,28 @@ class ArchiveBase():
 
     def read(file_name):
         raise NotImplementedError()
+
+    def extract(self, file_name, dst = None):
+        if dst is None:
+            dst = file_name
+
+        bufSize = 1024
+
+        if not hasattr(dst, "write"):
+            p = Path(dst)
+            p = p.resolve(strict = False)
+            os.makedirs(p.parent, exist_ok=True)
+            dst = open(p, mode = "wb")
+
+        with self.read(file_name) as src, dst:
+            while True:
+                buf = src.read(bufSize)
+                if buf:
+                    dst.write(buf)
+                else:
+                    break
+
+
 
     def close():
         raise NotImplementedError()
@@ -183,7 +206,7 @@ class ArchiveOfCompressedFiles(ArchiveBase):
     def pure_name(name):
         endings = ArchiveOfCompressedFiles.registered_endings
         path = Path(name)
-        while path.suffix[1:] in endings:
+        if path.suffix[1:] in endings:
             path = path.with_suffix("")
 
         return str(path)

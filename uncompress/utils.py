@@ -67,12 +67,18 @@ class PathType(object):
 
         return string
 
-def run(archive, file = None, list = "files"):
+def run(archive, file = None, dst = None, list = "files", pureName = True):
     with uncompress.Archive(archive) as a:
         if file is not None:
-            f = io.TextIOWrapper(a.read(file))
-            for line in f.readlines():
-                print(line,end="")
+            if dst == "-":
+                f = io.TextIOWrapper(a.read(file))
+                for line in f.readlines():
+                    print(line,end="")
+            else:
+                if dst is None and pureName:
+                    dst = a.pure_name(file)
+                a.extract(file, dst)
+
         elif list == "files":
             for name in a.list_files():
                 print(name)
@@ -99,6 +105,10 @@ def run_cmd_main():
         archive of compressed files.""")
     p.add_argument("archvie", help="Archive to uncompress.", type=PathType(exists=True, type="any"))
     p.add_argument("file", help="File to extract from archive.", type=str, nargs='?')
+    p.add_argument("dst",  help="Destination to extract to. '-' for std out, ommit to extract into same path.", type=str, nargs='?')
+
+    p.add_argument("-e", "--exactName", help="Use exact name for extraction, e.g. foo.txt.gz will be extracted to foo.txt.gz instead of foo.txt.",
+    default=False, action="store_true")
 
     args = p.parse_args()
-    return runUI(args.archvie, args.file)
+    return runUI(args.archvie, args.file, args.dst, pureName = not args.exactName)
