@@ -70,7 +70,7 @@ class Archive():
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
-class UnsupportedArchive(RuntimeError):
+class UnsupportedArchive(TypeError):
     pass
 
 @Archive.register_archive
@@ -78,7 +78,7 @@ class ZipWrapper(Archive):
     def __init__(self, file):
         try:
             self.zip = zipfile.ZipFile(file)
-        except zipfile.BadZipFile as e:
+        except (zipfile.BadZipFile, IsADirectoryError) as e:
             raise UnsupportedArchive(e)
 
     def infolist(self):
@@ -99,7 +99,7 @@ class TarWrapper(Archive):
                 self.tar = tarfile.open(fileobj = file)
             except AttributeError as e:
                 self.tar = tarfile.TarFile(file)
-        except tarfile.ReadError as e:
+        except (tarfile.ReadError, IsADirectoryError) as e:
             raise UnsupportedArchive(e)
 
     def infolist(self):
@@ -110,6 +110,41 @@ class TarWrapper(Archive):
 
     def close(self):
         self.tar.close()
+
+@Archive.register_archive
+class FolderWrapper(Archive):
+    def __init__(self, file):
+        self.openFiles = list()
+
+        try:
+            self.p = Path(file)
+        except TypeError as e:
+            raise UnsupportedArchive(e)
+
+        if not self.p.exists():
+            raise UnsupportedArchive("Can't open non existing direcotry.")
+
+        if not self.p.is_dir():
+            raise UnsupportedArchive("Expecting a direcotry.")
+
+    def infolist(self):
+        return [
+            FileInfo(str(f.relative_to(self.p)), f.is_file())
+            for f in self.p.glob("**/*")]
+
+    def read(self, file_name):
+        fullPath = self.p.joinpath(file_name)
+        file = fullPath.open(mode="rb")
+        self.openFiles.append(file)
+        return file
+
+    def close(self):
+        for file in self.openFiles:
+            file.close()
+
+
+
+
 
 class ArchiveOfCompressedFiles(Archive):
     registered_compressions = list()
