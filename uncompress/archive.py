@@ -10,6 +10,8 @@ import io
 from pathlib import Path
 import os
 
+from contextlib import contextmanager
+
 class register_archive:
     def __init__(self, ending):
         self.ending = ending
@@ -17,6 +19,13 @@ class register_archive:
     def __call__(self, f):
         registered_archives[self.ending] = f
         return f
+
+@contextmanager
+def closing(ret, file):
+    try:
+        yield ret
+    finally:
+        file.close()
 
 FileInfo = namedtuple('FileInfo', "name is_file")
 
@@ -218,7 +227,9 @@ class ArchiveOfCompressedFiles(ArchiveBase):
         return self.archive.infolist()
 
     def read(self, file_name):
-        return self.uncompress(self.archive.read(file_name))
+        file = self.archive.read(file_name)
+        ret = self.uncompress(file)
+        return closing(ret, file)
 
     def close(self):
         self.archive.close()
