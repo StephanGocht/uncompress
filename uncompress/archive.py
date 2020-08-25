@@ -79,8 +79,8 @@ class ArchiveBase():
 
         if not hasattr(dst, "write"):
             p = Path(dst)
-            p = p.resolve(strict = False)
             os.makedirs(p.parent, exist_ok=True)
+            p = p.resolve()
             dst = open(p, mode = "wb")
 
         with self.read(file_name) as src, dst:
